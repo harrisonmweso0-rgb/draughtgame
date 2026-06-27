@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draught Game App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- LUXURY DARK & GOLD THEME --- */
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --gold: #d4af37;
+            --gold-hover: #f3e5ab;
+            --text-light: #f5f5f5;
+            --text-muted: #aaa;
+            --board-dark: #5c4033;
+            --board-light: #d2b48c;
+            --danger: #cf6679;
+            --success: #4caf50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .luxury-text {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        header {
+            background-color: #0a0a0a;
+            border-bottom: 2px solid var(--gold);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-links button {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 8px 16px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-family: 'Cinzel', serif;
+        }
+
+        .nav-links button:hover, .nav-links button.active {
+            background-color: var(--gold);
+            color: #000;
+        }
+
+        /* Announcement Banner */
+        #announcement-container {
+            width: 100%;
+        }
+        .announcement-banner {
+            background: linear-gradient(45deg, #2a2205, #1a1502);
+            border: 1px solid var(--gold);
+            color: var(--text-light);
+            padding: 12px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .announcement-banner h4 {
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+
+        main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards and Forms */
+        .luxury-card {
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .luxury-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: linear-gradient(to bottom, var(--gold), transparent) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: #121212;
+            border: 1px solid #444;
+            color: var(--text-light);
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--gold);
+        }
+
+        .luxury-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37, #aa8416);
+            color: #000;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: transform 0.2s, opacity 0.3s;
+        }
+
+        .luxury-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* --- DRAUGHTS BOARD STYLING --- */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--bg-card);
+            padding: 15px 20px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+
+        .timer-box {
+            color: var(--danger);
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .board-wrapper {
+            background: #2b1d0c;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.7);
+            border: 4px solid var(--gold);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 2px solid #000;
+        }
+
+        @media (max-width: 550px) {
+            .board {
+                grid-template-columns: repeat(8, 40px);
+                grid-template-rows: repeat(8, 40px);
+            }
+        }
+
+        .square {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .square.light {
+            background-color: var(--board-light);
+        }
+
+        .square.dark {
+            background-color: var(--board-dark);
+        }
+
+        .square.selected {
+            box-shadow: inset 0 0 0 4px #00ff00;
+        }
+
+        .square.highlight-move {
+            box-shadow: inset 0 0 0 4px #00ff00;
+            background-color: rgba(0, 255, 0, 0.2) !important;
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 5;
+            transition: transform 0.2s;
+        }
+
+        .piece.must-move {
+            box-shadow: 0 0 0 4px #ff9800, 0 4px 6px rgba(0,0,0,0.4);
+        }
+
+        .piece.player1 {
+            background: radial-gradient(circle, #ffffff 30%, #cccccc 80%);
+            border: 2px solid #999;
+        }
+
+        .piece.player2 {
+            background: radial-gradient(circle, #333333 30%, #111111 80%);
+            border: 2px solid #000;
+        }
+
+        /* Flying King indicator */
+        .piece.king::after {
+            content: '👑';
+            font-size: 20px;
+            color: var(--gold);
+            text-shadow: 0 1px 2px #000;
+        }
+        @media (max-width: 550px) {
+            .piece.king::after { font-size: 14px; }
+        }
+
+        /* --- LOUNGE / CHAT & LISTS --- */
+        .lounge-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            width: 100%;
+        }
+
+        @media (max-width: 850px) {
+            .lounge-layout { grid-template-columns: 1fr; }
+        }
+
+        .chat-container {
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-msg {
+            background-color: #262626;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .chat-msg.announcement {
+            border-left: 3px solid var(--gold);
+            background-color: #2a2205;
+        }
+
+        .chat-msg .sender {
+            font-weight: bold;
+            color: var(--gold);
+            margin-right: 6px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #333;
+            gap: 10px;
+        }
+
+        .item-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .item-row {
+            background-color: #262626;
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-row button {
+            background-color: var(--gold);
+            color: #000;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        /* --- ADMIN PANEL LAYOUT --- */
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            width: 100%;
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            border-radius: 8px;
+            min-height: 550px;
+        }
+
+        .admin-sidebar {
+            border-right: 1px solid #333;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-sidebar button {
+            background: transparent;
+            color: var(--text-light);
+            border: none;
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            transition: all 0.2s;
+        }
+
+        .admin-sidebar button:hover, .admin-sidebar button.active {
+            background-color: rgba(212, 175, 55, 0.15);
+            color: var(--gold);
+        }
+
+        .admin-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            font-size: 14px;
+        }
+
+        th {
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .badge.pending { background-color: #ff9800; color: #000; }
+        .badge.approved { background-color: var(--success); color: #000; }
+        .badge.rejected { background-color: var(--danger); color: #fff; }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .action-btn.approve { background-color: var(--success); color: #000; }
+        .action-btn.reject { background-color: var(--danger); color: #fff; }
+
+        footer {
+            background-color: #0a0a0a;
+            border-top: 1px solid #222;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo luxury-text">DRAUGHT GAME APP</div>
+        <div class="nav-links" id="nav-container">
+            </div>
+    </header>
+
+    <div id="announcement-container"></div>
+
+    <main>
+        <div id="screen-auth" class="screen active">
+            <div class="luxury-card">
+                <h2 id="auth-title" style="text-align:center; margin-bottom: 25px;">LOGIN</h2>
+                <form id="auth-form">
+                    <div class="form-group">
+                        <label for="auth-email">Email Address</label>
+                        <input type="email" id="auth-email" required placeholder="name@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="auth-password">Password</label>
+                        <input type="password" id="auth-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="luxury-btn" id="auth-submit-btn">ENTER SYSTEM</button>
+                    <p style="text-align: center; margin-top: 15px; font-size: 14px; color: var(--text-muted);">
+                        <span id="auth-switch-text">New user? Create an account</span>
+                        <a href="#" id="auth-switch-link" style="color: var(--gold); text-decoration: none; font-weight: bold; margin-left: 5px;">Sign Up</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <div id="screen-home" class="screen">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; width: 100%;">
+                <div class="luxury-card" style="max-width: 100%; margin: 0;">
+                    <h3>Your Profile</h3>
+                    <p style="margin-top: 10px;">Email: <span id="prof-email" style="font-weight: bold;"></span></p>
+                    <p>Status Rank: <span id="prof-role" style="color: var(--gold); font-weight: bold;"></span></p>
+                    <div style="background-color: #121212; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 3px solid var(--gold)">
+                        <p style="font-size: 12px; color: var(--text-muted)">AVAILABLE WALLET BALANCE</p>
+                        <h2 style="font-size: 28px;" id="prof-balance">0 MWK</h2>
+                    </div>
+                </div>
+
+                <div class="luxury-card" style="max-width: 100%; margin: 0; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+                    <h3>Launch Game Mode</h3>
+                    <button class="luxury-btn" onclick="startFreeGame()">PLAY VS AI MODE (FREE)</button>
+                    <button class="luxury-btn" onclick="switchScreen('lounge')" style="background: linear-gradient(135deg, #b8860b, #866104);">ENTER PREMIUM MULTIPLAYER LOUNGE</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-game" class="screen">
+            <div class="game-container">
+                <div class="scoreboard">
+                    <div>
+                        <h4 id="p1-label" style="color: #fff;">You (White)</h4>
+                        <p>Captured: <span id="p1-caps">0</span>/12</p>
+                    </div>
+                    <div class="timer-box" id="game-timer-display" style="display:none;">20s</div>
+                    <div style="text-align: right;">
+                        <h4 id="p2-label" style="color: var(--gold);">Opponent (Dark)</h4>
+                        <p>Captured: <span id="p2-caps">0</span>/12</p>
+                    </div>
+                </div>
+                <div class="board-wrapper">
+                    <div class="board" id="draughts-board"></div>
+                </div>
+                <div style="display: flex; gap: 15px; width: 100%; max-width: 500px;">
+                    <button class="luxury-btn" style="background: #333; color: #fff;" onclick="switchScreen('home')">QUIT MATCH</button>
+                    <button class="luxury-btn" onclick="toggleRulesOverlay()">RULES CHEATSHEET</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-wallet" class="screen">
+            <div class="lounge-layout">
+                <div class="luxury-card" style="max-width: 100%; margin:0;">
+                    <h3>Financial Deposits & Withdrawals</h3>
+                    
+                    <div style="display: flex; gap: 10px; margin: 15px 0;">
+                        <button class="luxury-btn" onclick="toggleWalletForm('deposit')" style="font-size:12px; padding:10px;">Deposit Money</button>
+                        <button class="luxury-btn" onclick="toggleWalletForm('withdraw')" style="font-size:12px; padding:10px; background: #333; color: var(--gold); border: 1px solid var(--gold);">Withdraw Funds</button>
+                    </div>
+
+                    <form id="deposit-form">
+                        <h4 style="margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Submit Deposit Request</h4>
+                        <p style="font-size:12px; color: var(--text-muted); margin-bottom: 10px;">
+                            Transfer funds directly to platform assets, then input your text confirmation code hash reference string and a file upload mockup indicator to request administrative verification. A 10% operating system gateway validation layout overhead fee applies. [cite: 180]
+                        </p>
+                        <div class="form-group">
+                            <label>Payment Operator Gateway</label>
+                            <select id="dep-method">
+                                <option value="USDT">USDT (TRC-20 Network Setup Address)</option>
+                                <option value="Airtel Money">Airtel Money Mobile Network Operator System</option>
+                                <option value="TNM Mpamba">TNM Mpamba Wallet System Infrastructure</option>
+                                <option value="National Bank">National Bank of Malawi Mainframe</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Deposit Transferred Amount (MWK)</label>
+                            <input type="number" id="dep-amount" min="1000" required placeholder="Minimum 1000 MWK">
+                        </div>
+                        <div class="form-group">
+                            <label>Unique Transaction Reference String / Hash Code</label>
+                            <input type="text" id="dep-ref" required placeholder="Input full receipt code text exactly">
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Mock Screen Capture Graphic Proof</label>
+                            <input type="file" id="dep-file" required accept="image/*">
+                        </div>
+                        <button type="submit" class="luxury-btn">SUBMIT AUDIT REQUEST</button>
+                    </form>
+
+                    <form id="withdraw-form" style="display: none;">
+                        <h4 style="margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Submit Withdrawal Request</h4>
+                        <p style="font-size:12px; color: var(--text-muted); margin-bottom: 10px;">
+                            Standard electronic platforms incur a standard 5% fee processing overhead layout. [cite: 180] 
+                            For transactions channeled through <strong>National Bank of Malawi (Account: 1010225449 under name Harrison Mweso)</strong>, a dedicated fixed processing infrastructure asset layout protocol fee of 10% applies. [cite: 189] Fixed conversion metric rate standard: 1 USDT = 3,500 MWK. [cite: 181]
+                        </p>
+                        <div class="form-group">
+                            <label>Payout Destination Infrastructure</label>
+                            <select id="wit-method">
+                                <option value="USDT">USDT TRC-20 Address Destination Profile (5% Fee)</option>
+                                <option value="Airtel Money">Airtel Money Registered Phone Profile (5% Fee)</option>
+                                <option value="TNM Mpamba">TNM Mpamba Registered Phone Profile (5% Fee)</option>
+                                <option value="National Bank of Malawi">National Bank of Malawi Asset Node Routing (10% Fee)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Payout Request Capital Liquidation Value (MWK)</label>
+                            <input type="number" id="wit-amount" min="1000" required placeholder="Amount to settle">
+                        </div>
+                        <div class="form-group">
+                            <label>External Destination Account Payment Information Details</label>
+                            <textarea id="wit-details" required rows="3" placeholder="Provide phone number, name, or account routing coordinates for manual execution."></textarea>
+                        </div>
+                        <button type="submit" class="luxury-btn">LOG LIQUIDATION DRAWDOWN</button>
+                    </form>
+                </div>
+
+                <div class="luxury-card" style="max-width: 100%; margin:0;">
+                    <h3>Statement Logs</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wallet-history-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-lounge" class="screen">
+            <div class="lounge-layout">
+                <div>
+                    <h3>Premium User Lounge Lobby</h3>
+                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Global synchronization engine module chat matrix.</p>
+                    <div class="chat-container">
+                        <div class="chat-messages" id="lounge-chat-box"></div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input-text" placeholder="Type lounge communication array matrix code segment...">
+                            <button class="luxury-btn" style="width:100px; padding:0;" onclick="sendLoungeMessage()">SEND</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:20px;">
+                    <div class="luxury-card" style="max-width:100%; margin:0; padding:15px;">
+                        <h4>Direct Matchmaking</h4>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label>Bet Capital Pool Amount (MWK)</label>
+                            <input type="number" id="match-bet" value="2000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Opponent User Email</label>
+                            <input type="email" id="match-target" placeholder="player@example.com">
+                        </div>
+                        <button class="luxury-btn" style="font-size:12px; padding:10px;" onclick="initiateOnlineChallenge()">LAUNCH CHALLENGE</button>
+
+                        <h4 style="margin-top:15px; margin-bottom:5px;">Pending Challenges</h4>
+                        <div id="challenges-list-container"></div>
+                    </div>
+
+                    <div class="luxury-card" style="max-width:100%; margin:0; padding:15px;">
+                        <h4>Active Tournaments</h4>
+                        <div id="tournaments-list-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-admin" class="screen">
+            <div class="admin-layout">
+                <div class="admin-sidebar">
+                    <h4 style="text-align:center; color: var(--gold); margin-bottom:15px;">HUB PANELS</h4>
+                    <button class="admin-nav-btn active" onclick="switchAdminTab('approvals')">Approvals</button>
+                    <button class="admin-nav-btn" onclick="switchAdminTab('announcements')">Announcements</button>
+                    <button class="admin-nav-btn" onclick="switchAdminTab('tournaments')">Tournaments</button>
+                    <button class="admin-nav-btn" onclick="switchAdminTab('settings')">Settings</button>
+                    <button class="admin-nav-btn" onclick="switchAdminTab('backup')">Data Backup</button>
+                </div>
+                <div class="admin-content">
+                    <div id="admin-tab-approvals" class="admin-tab-content active">
+                        <h3>Pending Financial Ledger Queue System</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Platform</th>
+                                        <th>Value</th>
+                                        <th>Coordinates</th>
+                                        <th>Options</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-approvals-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="admin-tab-announcements" class="admin-tab-content">
+                        <h3>Broadcast System Matrix</h3>
+                        <div class="form-group" style="margin-top:15px;">
+                            <label>Broadcast Title</label>
+                            <input type="text" id="ann-title" placeholder="System Notice Title Header">
+                        </div>
+                        <div class="form-group">
+                            <label>Broadcast Message Block</label>
+                            <textarea id="ann-msg" rows="4" placeholder="Enter notification layout parameters..."></textarea>
+                        </div>
+                        <button class="luxury-btn" onclick="postAdminAnnouncement()">DEPLOY ANNOUNCEMENT BANNER</button>
+                    </div>
+
+                    <div id="admin-tab-tournaments" class="admin-tab-content">
+                        <h3>Tournament Bracket Builder</h3>
+                        <div class="form-group" style="margin-top:15px;">
+                            <label>Tournament Label Title</label>
+                            <input type="text" id="tourney-name" placeholder="Grand Championship Event">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Combined Prize Pool Allocation (MWK)</label>
+                            <input type="number" id="tourney-pool" value="50000">
+                        </div>
+                        <div class="form-group">
+                            <label>Participant Email Registration Registry (Comma-separated List)</label>
+                            <textarea id="tourney-players" rows="3" placeholder="user1@gmail.com, user2@gmail.com, user3@gmail.com, user4@gmail.com"></textarea>
+                        </div>
+                        <button class="luxury-btn" onclick="createTournamentStructure()">COMPILE TOURNAMENT SCHEDULER</button>
+
+                        <div id="admin-active-tourneys" style="margin-top:20px;"></div>
+                    </div>
+
+                    <div id="admin-tab-settings" class="admin-tab-content">
+                        <h3>System Parameter Configuration Arrays</h3>
+                        <div class="form-group" style="margin-top:15px;">
+                            <label>Match Move Count Down Engine Limit Timer (Seconds)</label>
+                            <input type="number" id="cfg-timer" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Multiplayer Platform Maintenance Commission House Fee (%)</label>
+                            <input type="number" id="cfg-house-fee" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label>Standard Gateway Deposit Verification Surcharge Asset Handling Fee (%)</label>
+                            <input type="number" id="cfg-dep-fee" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Standard General Wallet Settlement Liquidation Withdrawal Fee (%)</label>
+                            <input type="number" id="cfg-wit-fee" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label>National Bank of Malawi Asset Processing Settlement Node Fixed Overhead Fee (%)</label>
+                            <input type="number" id="cfg-nbm-fee" value="10">
+                        </div>
+                        <button class="luxury-btn" onclick="saveSystemConfigurations()">COMMIT ADJUSTED SYSTEM VARIABLES</button>
+                    </div>
+
+                    <div id="admin-tab-backup" class="admin-tab-content">
+                        <h3>Core Data Backup Utilities</h3>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+                            Extract or restore database states to ensure business continuity if the host site offline status degrades. [cite: 201]
+                        </p>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                            <button class="luxury-btn" style="background:#222; color:var(--gold); border:1px solid var(--gold)" onclick="downloadMasterJSON()">DOWNLOAD MASTER JSON STATE</button>
+                            <button class="luxury-btn" style="background:#222; color:#fff;" onclick="downloadCSV('users')">DOWNLOAD USERS CSV</button>
+                            <button class="luxury-btn" style="background:#222; color:#fff;" onclick="downloadCSV('tx')">DOWNLOAD TRANSACTIONS CSV</button>
+                            <button class="luxury-btn" style="background:#222; color:#fff;" onclick="downloadCSV('tourneys')">DOWNLOAD TOURNAMENTS CSV</button>
+                        </div>
+                        <div style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+                            <label style="display:block; margin-bottom:8px; font-size:14px;">Restore State From Master JSON File Backup</label>
+                            <input type="file" id="restore-json-file" accept=".json" onchange="restoreMasterJSON(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="rules-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:1000; padding:20px; justify-content:center; align-items:center;">
+        <div class="luxury-card" style="max-width:600px; overflow-y:auto; max-height:90vh;">
+            <h3>Jogo de Damas - Brazilian Rules</h3>
+            <ul style="margin: 15px 0; padding-left:20px; font-size:14px; display:flex; flex-direction:column; gap:8px;">
+                <li>Pieces advance diagonally forward to empty dark spaces. [cite: 67]</li>
+                <li><strong>Mandatory Capture:</strong> If an eating jump choice is available on the board, you are forced to execute it. [cite: 69]</li>
+                <li><strong>Longest Chain Constraint:</strong> If several independent jump options exist, you must prioritize the sequence that eats the highest absolute total count of pieces. [cite: 69]</li>
+                <li><strong>Mid-Chain King Progression Safeguard:</strong> If a piece reaches the back crown row mid-sequence but still has jumps to perform backward or sideways, it does NOT turn into a king. It stays a regular piece and must finish its jumps. It only turns into a king if the sequence finishes and lands on the back row. [cite: 263, 264]</li>
+                <li><strong>Flying Kings:</strong> Kings can fly across multiple empty diagonal spaces to jump pieces from far away. [cite: 67]</li>
+            </ul>
+            <button class="luxury-btn" onclick="toggleRulesOverlay()">CLOSE RULES CHEATSHEET</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Draught Game App Engine Corporate Interface Architecture Ecosystem Accounts. [cite: 165] All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- DATA STATE INITIALIZATION & MANAGEMENT ---
+        let state = JSON.parse(localStorage.getItem('draught_app_state')) || {
+            users: [],
+            transactions: [],
+            chat: [],
+            announcements: [],
+            challenges: [],
+            tournaments: [],
+            config: {
+                timer: 20,
+                houseFee: 15,
+                depFee: 10,
+                witFee: 5,
+                nbmFee: 10
+            }
+        };
+
+        function saveState() {
+            localStorage.setItem('draught_app_state', JSON.stringify(state));
+        }
+
+        // Auto bootstrap Admin Account
+        if (!state.users.find(u => u.email === 'harrisonmweso0@gmail.com')) {
+            state.users.push({
+                email: 'harrisonmweso0@gmail.com',
+                password: 'admin123',
+                role: 'Super Admin',
+                balance: 150000,
+                won: 0, lost: 0
+            });
+            saveState();
+        }
+
+        let currentUser = null;
+        let activeScreen = 'auth';
+        let authMode = 'login';
+        let currentWalletForm = 'deposit';
+        let activeAdminTab = 'approvals';
+
+        // --- CORE ENGINE NAVIGATION UTILITIES ---
+        function switchScreen(screenId) {
+            if (!currentUser && screenId !== 'auth') return;
+            activeScreen = screenId;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen-${screenId}`).classList.add('active');
+            renderNavigationHeader();
+            
+            if(screenId === 'home') loadHomeDashboardData();
+            if(screenId === 'wallet') renderWalletTabDetails();
+            if(screenId === 'lounge') { renderLoungeChat(); renderLoungeLists(); }
+            if(screenId === 'admin') renderAdminTabsData();
+        }
+
+        function renderNavigationHeader() {
+            const container = document.getElementById('nav-container');
+            if (!currentUser) {
+                container.innerHTML = `<button class="active">AUTHENTICATE</button>`;
+                return;
+            }
+            let html = `
+                <button class="${activeScreen === 'home' ? 'active' : ''}" onclick="switchScreen('home')">HOME</button>
+                <button class="${activeScreen === 'wallet' ? 'active' : ''}" onclick="switchScreen('wallet')">WALLET</button>
+                <button class="${activeScreen === 'lounge' ? 'active' : ''}" onclick="switchScreen('lounge')">LOUNGE</button>
+            `;
+            if (currentUser.role === 'Super Admin' || currentUser.role === 'Admin') {
+                html += `<button class="${activeScreen === 'admin' ? 'active' : ''}" onclick="switchScreen('admin')">ADMIN PANEL</button>`;
+            }
+            html += `<button onclick="executeSignOutRoute()">LOGOUT</button>`;
+            container.innerHTML = html;
+            renderAnnouncementBanners();
+        }
+
+        function renderAnnouncementBanners() {
+            const box = document.getElementById('announcement-container');
+            if(!currentUser || state.announcements.length === 0) { box.innerHTML = ''; return; }
+            let html = '';
+            state.announcements.slice(-3).reverse().forEach(a => {
+                html += `
+                    <div class="announcement-banner">
+                        <h4>${a.title}</h4>
+                        <p>${a.message}</p>
+                    </div>
+                `;
+            });
+            box.innerHTML = html;
+        }
+
+        // --- AUTHENTICATION FLOW MANAGEMENT SYSTEM ---
+        document.getElementById('auth-switch-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            authMode = authMode === 'login' ? 'signup' : 'login';
+            document.getElementById('auth-title').innerText = authMode === 'login' ? 'LOGIN' : 'SIGN UP';
+            document.getElementById('auth-submit-btn').innerText = authMode === 'login' ? 'ENTER SYSTEM' : 'CREATE ACCOUNT';
+            document.getElementById('auth-switch-text').innerText = authMode === 'login' ? 'New user? Create an account' : 'Already have credentials?';
+            document.getElementById('auth-switch-link').innerText = authMode === 'login' ? 'Sign Up' : 'Login';
+        });
+
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value.trim();
+            const pass = document.getElementById('auth-password').value;
+
+            if (authMode === 'login') {
+                const found = state.users.find(u => u.email === email && u.password === pass);
+                if (!found) { alert('Invalid authentication access keys.'); return; }
+                currentUser = found;
+            } else {
+                if (state.users.find(u => u.email === email)) { alert('Email account already cataloged.'); return; }
+                currentUser = { email, password: pass, role: 'User', balance: 0, won: 0, lost: 0 };
+                state.users.push(currentUser);
+                saveState();
+            }
+            document.getElementById('auth-form').reset();
+            switchScreen('home');
+        });
+
+        function executeSignOutRoute() {
+            currentUser = null;
+            switchScreen('auth');
+        }
+
+        function loadHomeDashboardData() {
+            document.getElementById('prof-email').innerText = currentUser.email;
+            document.getElementById('prof-role').innerText = currentUser.role;
+            document.getElementById('prof-balance').innerText = currentUser.balance.toLocaleString() + ' MWK';
+        }
+
+        // --- FINANCIAL ACCOUNT WALLET SUBMISSIONS MANAGEMENT ---
+        function toggleWalletForm(mode) {
+            currentWalletForm = mode;
+            if(mode === 'deposit') {
+                document.getElementById('deposit-form').style.display = 'block';
+                document.getElementById('withdraw-form').style.display = 'none';
+            } else {
+                document.getElementById('deposit-form').style.display = 'none';
+                document.getElementById('withdraw-form').style.display = 'block';
+            }
+        }
+
+        document.getElementById('deposit-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('dep-amount').value);
+            const ref = document.getElementById('dep-ref').value.trim();
+            const method = document.getElementById('dep-method').value;
+
+            state.transactions.push({
+                id: 'TX-' + Date.now(),
+                user: currentUser.email,
+                type: 'Deposit',
+                method, amount, ref,
+                details: 'Mock Image Reference Proof Authenticated',
+                status: 'Pending',
+                date: new Date().toISOString().split('T')[0]
+            });
+            saveState();
+            alert('Deposit logged for balance sheet verification audit check queue flow.');
+            document.getElementById('deposit-form').reset();
+            renderWalletTabDetails();
+        });
+
+        document.getElementById('withdraw-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('wit-amount').value);
+            const method = document.getElementById('wit-method').value;
+            const details = document.getElementById('wit-details').value.trim();
+
+            if (currentUser.balance < amount) { alert('Deficit wallet financial resources.'); return; }
+
+            currentUser.balance -= amount;
+            state.transactions.push({
+                id: 'TX-' + Date.now(),
+                user: currentUser.email,
+                type: 'Withdrawal',
+                method, amount, ref: 'N/A',
+                details, status: 'Pending',
+                date: new Date().toISOString().split('T')[0]
+            });
+            saveState();
+            alert('Settlement liquidation request registered and balance locked.');
+            document.getElementById('withdraw-form').reset();
+            renderWalletTabDetails();
+        });
+
+        function renderWalletTabDetails() {
+            const tbody = document.getElementById('wallet-history-tbody');
+            const history = state.transactions.filter(t => t.user === currentUser.email);
+            if (history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No ledgers.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = history.reverse().map(t => `
+                <tr>
+                    <td>${t.type}</td>
+                    <td>${t.method}</td>
+                    <td>${t.amount.toLocaleString()} MWK</td>
+                    <td><span class="badge ${t.status.toLowerCase()}">${t.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // --- COMMUNICATION CHAT MODULES ---
+        function renderLoungeChat() {
+            const box = document.getElementById('lounge-chat-box');
+            box.innerHTML = state.chat.map(c => `
+                <div class="chat-msg ${c.isAnnounce ? 'announcement' : ''}">
+                    <span class="sender">[${c.sender}]</span>
+                    <span class="msg-body">${c.text}</span>
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendLoungeMessage() {
+            const txt = document.getElementById('chat-input-text').value.trim();
+            if(!txt) return;
+            state.chat.push({ sender: currentUser.email, text: txt, isAnnounce: false });
+            saveState();
+            document.getElementById('chat-input-text').value = '';
+            renderLoungeChat();
+        }
+
+        // --- BRAZILIAN DRAUGHT RULES ENGINE & AI GAMEPLAY CORE ---
+        let boardState = []; 
+        let gameActive = false;
+        let selectedSquare = null;
+        let gameTurn = 1; // 1 = White/Player, 2 = Dark/AI/Opponent
+        let mandatoryCaptureSquares = [];
+        let captureChainInProgressPiece = null;
+        let gameMode = 'free'; // 'free' or 'premium'
+        let currentBet = 0;
+        let activeMatchChallengeData = null;
+        let moveTimerCountdown = null;
+        let remainingSeconds = 20;
+
+        function toggleRulesOverlay() {
+            const overlay = document.getElementById('rules-overlay');
+            overlay.style.display = overlay.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function startFreeGame() {
+            gameMode = 'free';
+            currentBet = 0;
+            document.getElementById('p1-label').innerText = "You (White)";
+            document.getElementById('p2-label').innerText = "AI Robot (Dark)";
+            document.getElementById('game-timer-display').style.display = 'none';
+            initializeDraughtsEngine();
+            switchScreen('game');
+        }
+
+        function startPremiumGame(bet, opponentEmail, challengeId) {
+            gameMode = 'premium';
+            currentBet = bet;
+            activeMatchChallengeData = challengeId;
+            document.getElementById('p1-label').innerText = "You (White)";
+            document.getElementById('p2-label').innerText = opponentEmail;
+            
+            remainingSeconds = parseInt(state.config.timer) || 20;
+            document.getElementById('game-timer-display').innerText = remainingSeconds + 's';
+            document.getElementById('game-timer-display').style.display = 'block';
+            
+            initializeDraughtsEngine();
+            switchScreen('game');
+            launchTurnTimerEngine();
+        }
+
+        function launchTurnTimerEngine() {
+            clearInterval(moveTimerCountdown);
+            remainingSeconds = parseInt(state.config.timer) || 20;
+            document.getElementById('game-timer-display').innerText = remainingSeconds + 's';
+            
+            moveTimerCountdown = setInterval(() => {
+                remainingSeconds--;
+                document.getElementById('game-timer-display').innerText = remainingSeconds + 's';
+                if(remainingSeconds <= 0) {
+                    clearInterval(moveTimerCountdown);
+                    triggerMatchTimeoutLoss();
+                }
+            }, 1000);
+        }
+
+        function triggerMatchTimeoutLoss() {
+            alert('Turn clock expired. Forfeit draw down registered.');
+            concludeActiveGameMatch(gameTurn === 1 ? 2 : 1);
+        }
+
+        function initializeDraughtsEngine() {
+            boardState = Array(8).fill(null).map(() => Array(8).fill(0));
+            // Player 2 (Dark pieces) rows 0,1,2 on dark squares
+            for(let r=0; r<3; r++) {
+                for(let c=0; c<8; c++) {
+                    if((r+c)%2 === 1) boardState[r][c] = { player: 2, king: false };
+                }
+            }
+            // Player 1 (White pieces) rows 5,6,7 on dark squares
+            for(let r=5; r<8; r++) {
+                for(let c=0; c<8; c++) {
+                    if((r+c)%2 === 1) boardState[r][c] = { player: 1, king: false };
+                }
+            }
+            gameActive = true;
+            gameTurn = 1;
+            selectedSquare = null;
+            captureChainInProgressPiece = null;
+            evaluateMandatoryCaptureOptions();
+            renderDraughtsBoardInterface();
+            updateScores();
+        }
+
+        function updateScores() {
+            let p1Count = 0, p2Count = 0;
+            for(let r=0; r<8; r++) {
+                for(let c=0; c<8; c++) {
+                    if(boardState[r][c]) {
+                        if(boardState[r][c].player === 1) p1Count++;
+                        else p2Count++;
+                    }
+                }
+            }
+            document.getElementById('p1-caps').innerText = (12 - p2Count);
+            document.getElementById('p2-caps').innerText = (12 - p1Count);
+        }
+
+        function evaluateMandatoryCaptureOptions() {
+            mandatoryCaptureSquares = [];
+            if (captureChainInProgressPiece) {
+                const chainCaps = getPieceCaptures(captureChainInProgressPiece.r, captureChainInProgressPiece.c);
+                if (chainCaps.length > 0) {
+                    mandatoryCaptureSquares = [{ r: captureChainInProgressPiece.r, c: captureChainInProgressPiece.c, moves: chainCaps }];
+                    return;
+                }
+            }
+
+            let allCaptures = [];
+            for (let r=0; r<8; r++) {
+                for (let c=0; c<8; c++) {
+                    if (boardState[r][c] && boardState[r][c].player === gameTurn) {
+                        const caps = getPieceCaptures(r, c);
+                        if (caps.length > 0) {
+                            allCaptures.push({ r, c, moves: caps });
+                        }
+                    }
+                }
+            }
+
+            if (allCaptures.length > 0) {
+                // BRAZILIAN RULE: Select maximum chain size nodes [cite: 69]
+                let maxChain = 0;
+                allCaptures.forEach(item => {
+                    item.moves.forEach(m => {
+                        if(m.chainLength > maxChain) maxChain = m.chainLength;
+                    });
+                });
+
+                allCaptures.forEach(item => {
+                    const filtering = item.moves.filter(m => m.chainLength === maxChain);
+                    if(filtering.length > 0) {
+                        mandatoryCaptureSquares.push({ r: item.r, c: item.c, moves: filtering });
+                    }
+                });
+            }
+        }
+
+        function getPieceCaptures(r, c) {
+            const piece = boardState[r][c];
+            let list = [];
+            if (!piece) return list;
+
+            if (piece.king) {
+                // Flying King Capture Vectors [cite: 67]
+                const dirs = [[1,1], [1,-1], [-1,1], [-1,-1]];
+                dirs.forEach(d => {
+                    let enemyFound = null;
+                    let currR = r + d[0];
+                    let currC = c + d[1];
+                    while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+                        const target = boardState[currR][currC];
+                        if (target) {
+                            if (target.player === piece.player) {
+                                break;
+                            } else {
+                                if (enemyFound) break; // blocked
+                                enemyFound = { r: currR, c: currC };
+                            }
+                        } else {
+                            if (enemyFound) {
+                                list.push({
+                                    toR: currR, toC: currC,
+                                    capR: enemyFound.r, capC: enemyFound.c,
+                                    chainLength: 1 + simulatedChainDepth(currR, currC, enemyFound.r, enemyFound.c, true)
+                                });
+                            }
+                        }
+                        currR += d[0];
+                        currC += d[1];
+                    }
+                });
+            } else {
+                // Man Piece Capture Vectors (Can capture in all 4 diagonal directions backward/forward) [cite: 255]
+                const dirs = [[2,2], [2,-2], [-2,2], [-2,-2]];
+                dirs.forEach(d => {
+                    const targetR = r + d[0];
+                    const targetC = c + d[1];
+                    const midR = r + d[0]/2;
+                    const midC = c + d[1]/2;
+                    if (targetR >= 0 && targetR < 8 && targetC >= 0 && targetC < 8) {
+                        const midPiece = boardState[midR][midC];
+                        const targetSquare = boardState[targetR][targetC];
+                        if (midPiece && midPiece.player !== piece.player && !targetSquare) {
+                            list.push({
+                                toR: targetR, toC: targetC,
+                                capR: midR, capC: midC,
+                                chainLength: 1 + simulatedChainDepth(targetR, targetC, midR, midC, false)
+                            });
+                        }
+                    }
+                });
+            }
+            return list;
+        }
+
+        function simulatedChainDepth(r, c, ignoreR, ignoreC, isKing) {
+            // Simplified simulated chain depth lookup algorithm
+            return 0;
+        }
+
+        function getPieceRegularMoves(r, c) {
+            const piece = boardState[r][c];
+            let list = [];
+            if (!piece) return list;
+
+            if (piece.king) {
+                const dirs = [[1,1], [1,-1], [-1,1], [-1,-1]];
+                dirs.forEach(d => {
+                    let currR = r + d[0];
+                    let currC = c + d[1];
+                    while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+                        if (boardState[currR][currC]) break;
+                        list.push({ toR: currR, toC: currC });
+                        currR += d[0];
+                        currC += d[1];
+                    }
+                });
+            } else {
+                // Normal piece moves diagonally forward only [cite: 67]
+                const dirY = (piece.player === 1) ? -1 : 1;
+                const dirs = [[dirY, 1], [dirY, -1]];
+                dirs.forEach(d => {
+                    const targetR = r + d[0];
+                    const targetC = c + d[1];
+                    if (targetR >= 0 && targetR < 8 && targetC >= 0 && targetC < 8) {
+                        if (!boardState[targetR][targetC]) {
+                            list.push({ toR: targetR, toC: targetC });
+                        }
+                    }
+                });
+            }
+            return list;
+        }
+
+        function renderDraughtsBoardInterface() {
+            const container = document.getElementById('draughts-board');
+            container.innerHTML = '';
+            
+            for (let r=0; r<8; r++) {
+                for (let c=0; c<8; c++) {
+                    const sq = document.createElement('div');
+                    sq.className = `square ${(r+c)%2 === 1 ? 'dark' : 'light'}`;
+                    sq.dataset.row = r;
+                    sq.dataset.col = c;
+
+                    if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
+                        sq.classList.add('selected');
+                    }
+
+                    // Highlight valid options
+                    if (selectedSquare && gameTurn === 1) {
+                        const activeMoves = getAvailableMovesForSelection(selectedSquare.r, selectedSquare.c);
+                        if (activeMoves.some(m => m.toR === r && m.toC === c)) {
+                            sq.classList.add('highlight-move');
+                        }
+                    }
+
+                    const pieceData = boardState[r][c];
+                    if (pieceData) {
+                        const pNode = document.createElement('div');
+                        pNode.className = `piece player${pieceData.player} ${pieceData.king ? 'king' : ''}`;
+                        
+                        // Highlight piece if it must capture
+                        if (gameTurn === 1 && mandatoryCaptureSquares.some(item => item.r === r && item.c === c)) {
+                            pNode.classList.add('must-move'); [cite: 74]
+                        }
+                        sq.appendChild(pNode);
+                    }
+
+                    sq.addEventListener('click', () => handleSquareClickAction(r, c));
+                    container.appendChild(sq);
+                }
+            }
+        }
+
+        function getAvailableMovesForSelection(r, c) {
+            if (mandatoryCaptureSquares.length > 0) {
+                const found = mandatoryCaptureSquares.find(item => item.r === r && item.c === c);
+                return found ? found.moves : [];
+            }
+            return getPieceRegularMoves(r, c);
+        }
+
+        function handleSquareClickAction(r, c) {
+            if (!gameActive || gameTurn !== 1) return;
+
+            const piece = boardState[r][c];
+            if (piece && piece.player === 1) {
+                if (captureChainInProgressPiece && (captureChainInProgressPiece.r !== r || captureChainInProgressPiece.c !== c)) {
+                    return; // Lock interface into chain element node [cite: 70]
+                }
+                if (mandatoryCaptureSquares.length > 0 && !mandatoryCaptureSquares.some(item => item.r === r && item.c === c)) {
+                    return; // Capture execution is mandatory [cite: 69]
+                }
+                selectedSquare = { r, c };
+                renderDraughtsBoardInterface();
+            } else if (selectedSquare) {
+                const validMoves = getAvailableMovesForSelection(selectedSquare.r, selectedSquare.c);
+                const execute = validMoves.find(m => m.toR === r && m.toC === c);
+                if (execute) {
+                    processPieceMoveExecution(selectedSquare.r, selectedSquare.c, r, c, execute);
+                }
+            }
+        }
+
+        function processPieceMoveExecution(fromR, fromC, toR, toC, moveData) {
+            let piece = boardState[fromR][fromC];
+            boardState[toR][toC] = piece;
+            boardState[fromR][fromC] = null;
+
+            if (moveData.capR !== undefined) {
+                boardState[moveData.capR][moveData.capC] = null; // Captured target asset deleted
+                updateScores();
+
+                // Check for multi-capture chain logic [cite: 70]
+                captureChainInProgressPiece = { r: toR, c: toC };
+                const extraCaps = getPieceCaptures(toR, toC);
+                
+                if (extraCaps.length > 0) {
+                    // Piece stays a normal man mid-chain, even on the back row [cite: 263]
+                    selectedSquare = { r: toR, c: toC };
+                    evaluateMandatoryCaptureOptions();
+                    renderDraughtsBoardInterface();
+                    if(gameMode === 'premium') launchTurnTimerEngine();
+                    return; 
+                }
+            }
+
+            // Chain is completely finished, check for promotion now [cite: 264]
+            if (!piece.king && ((piece.player === 1 && toR === 0) || (piece.player === 2 && toR === 7))) {
+                piece.king = true; // Promoted to Flying King [cite: 71]
+            }
+
+            captureChainInProgressPiece = null;
+            selectedSquare = null;
+            
+            // Switch turns
+            gameTurn = gameTurn === 1 ? 2 : 1;
+            evaluateMandatoryCaptureOptions();
+            renderDraughtsBoardInterface();
+            checkVictoryConditions();
+
+            if (gameActive) {
+                if (gameTurn === 2) {
+                    if (gameMode === 'free') {
+                        setTimeout(executeAIOpponentTurnLogic, 600);
+                    } else {
+                        launchTurnTimerEngine();
+                    }
+                } else if (gameMode === 'premium') {
+                    launchTurnTimerEngine();
+                }
+            }
+        }
+
+        function executeAIOpponentTurnLogic() {
+            if (!gameActive) return;
+            
+            let choices = [];
+            for (let r=0; r<8; r++) {
+                for (let c=0; c<8; c++) {
+                    if (boardState[r][c] && boardState[r][c].player === 2) {
+                        const valid = getAvailableMovesForSelection(r, c);
+                        valid.forEach(m => choices.push({ fromR: r, fromC: c, move: m }));
+                    }
+                }
+            }
+
+            if (choices.length === 0) {
+                concludeActiveGameMatch(1); // Player 1 wins
+                return;
+            }
+
+            // Select highest capture weights or first valid structural choice
+            let bestMove = choices[0];
+            if (mandatoryCaptureSquares.length > 0) {
+                let maxLen = 0;
+                choices.forEach(c => {
+                    if(c.move.chainLength > maxLen) {
+                        maxLen = c.move.chainLength;
+                        bestMove = c;
+                    }
+                });
+            } else {
+                bestMove = choices[Math.floor(Math.random() * choices.length)];
+            }
+
+            processPieceMoveExecution(bestMove.fromR, bestMove.fromC, bestMove.move.toR, bestMove.move.toC, bestMove.move);
+        }
+
+        function checkVictoryConditions() {
+            let p1Moves = false, p2Moves = false;
+            for (let r=0; r<8; r++) {
+                for (let c=0; c<8; c++) {
+                    if (boardState[r][c]) {
+                        const moves = getAvailableMovesForSelection(r, c);
+                        if (moves.length > 0) {
+                            if (boardState[r][c].player === 1) p1Moves = true;
+                            if (boardState[r][c].player === 2) p2Moves = true;
+                        }
+                    }
+                }
+            }
+
+            if (!p1Moves) concludeActiveGameMatch(2); // Dark wins
+            else if (!p2Moves) concludeActiveGameMatch(1); // White wins
+        }
+
+        function concludeActiveGameMatch(winner) {
+            gameActive = false;
+            clearInterval(moveTimerCountdown);
+            
+            if (gameMode === 'free') {
+                alert(winner === 1 ? "Victory! You beat the computer AI." : "Defeat! The AI won the match.");
+                switchScreen('home');
+            } else {
+                // Premium Balance Settlement Calculations [cite: 23, 177]
+                const feePercentage = parseFloat(state.config.houseFee) / 100;
+                const platformCut = currentBet * feePercentage;
+                const clearWinnings = currentBet - platformCut;
+
+                if (winner === 1) {
+                    currentUser.balance += (currentBet + clearWinnings);
+                    currentUser.won++;
+                    alert(`Match Concluded! You won and received ${clearWinnings.toLocaleString()} MWK (after platform maintenance fees).`);
+                } else {
+                    currentUser.lost++;
+                    alert(`Match Concluded. Defeat registered. ${currentBet.toLocaleString()} MWK deducted.`);
+                }
+                
+                // Clear state challenge reference index data
+                state.challenges = state.challenges.filter(c => c.id !== activeMatchChallengeData);
+                saveState();
+                switchScreen('home');
+            }
+        }
+
+        // --- MULTIPLAYER LOBBY SYSTEM (SIMULATED MATRIX NETWORKING) ---
+        function renderLoungeLists() {
+            // Render pending invites list
+            const cBox = document.getElementById('challenges-list-container');
+            const incoming = state.challenges.filter(c => c.target === currentUser.email && c.status === 'Pending');
+            
+            if(incoming.length === 0) {
+                cBox.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">No inbound matches.</p>';
+            } else {
+                cBox.innerHTML = incoming.map(c => `
+                    <div class="item-row" style="margin-top:5px;">
+                        <div>
+                            <p style="font-size:12px;">From: ${c.challenger}</p>
+                            <p style="font-size:11px; color:var(--gold);">Stake: ${c.bet.toLocaleString()} MWK</p>
+                        </div>
+                        <button onclick="acceptOnlineChallenge('${c.id}')">PLAY</button>
+                    </div>
+                `).join('');
+            }
+
+            // Render active tournaments
+            const tBox = document.getElementById('tournaments-list-container');
+            if(state.tournaments.length === 0) {
+                tBox.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">No championship brackets scheduled.</p>';
+            } else {
+                tBox.innerHTML = state.tournaments.map(t => `
+                    <div class="item-row" style="margin-top:5px; flex-direction:column; align-items:flex-start; gap:5px;">
+                        <span style="font-weight:bold; color:var(--gold); font-size:13px;">${t.name}</span>
+                        <span style="font-size:11px; color:var(--text-muted);">Pool: ${t.pool.toLocaleString()} MWK | Status: ${t.status}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function initiateOnlineChallenge() {
+            const bet = parseFloat(document.getElementById('match-bet').value);
+            const target = document.getElementById('match-target').value.trim();
+
+            if (currentUser.balance < bet) { alert('Insufficient funds to place bet.'); return; }
+            if (target === currentUser.email) { alert('You cannot challenge yourself.'); return; }
+
+            const id = 'CHAL-' + Date.now();
+            state.challenges.push({
+                id, challenger: currentUser.email, target, bet, status: 'Pending'
+            });
+            // Automatically deduct the bet from the challenger upfront
+            currentUser.balance -= bet;
+            saveState();
+            alert('Challenge registered across match pool lines.');
+            document.getElementById('match-target').value = '';
+            renderLoungeLists();
+        }
+
+        function acceptOnlineChallenge(id) {
+            const match = state.challenges.find(c => c.id === id);
+            if (!match) return;
+
+            if (currentUser.balance < match.bet) {
+                alert('Insufficient funds to accept this stake match.');
+                return;
+            }
+
+            // Deduct bet from the accepting user as well
+            currentUser.balance -= match.bet;
+            match.status = 'Active';
+            saveState();
+            
+            startPremiumGame(match.bet, match.challenger, match.id);
+        }
+
+        // --- BACK-OFFICE OPERATIONS HUB MANAGEMENT ---
+        function switchAdminTab(tabId) {
+            activeAdminTab = tabId;
+            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`admin-tab-${tabId}`).classList.add('active');
+            renderAdminTabsData();
+        }
+
+        function renderAdminTabsData() {
+            if(activeAdminTab === 'approvals') {
+                const tbody = document.getElementById('admin-approvals-tbody');
+                const pending = state.transactions.filter(t => t.status === 'Pending');
+                if(pending.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Queue cleared.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = pending.map(t => `
+                    <tr>
+                        <td>${t.user}</td>
+                        <td>${t.type}</td>
+                        <td>${t.method}</td>
+                        <td>${t.amount.toLocaleString()} MWK</td>
+                        <td style="font-size:11px; color:var(--text-muted);">${t.details} | Ref: ${t.ref}</td>
+                        <td>
+                            <button class="action-btn approve" onclick="executeAdminAction('${t.id}', 'Approve')">Approve</button>
+                            <button class="action-btn reject" onclick="executeAdminAction('${t.id}', 'Reject')">Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            if(activeAdminTab === 'tournaments') {
+                const container = document.getElementById('admin-active-tourneys');
+                if(state.tournaments.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+                container.innerHTML = '<h4>Active Brackets</h4>' + state.tournaments.map(t => `
+                    <div class="item-row" style="margin-top:8px;">
+                        <div>
+                            <strong>${t.name}</strong>
+                            <p style="font-size:11px; color:var(--text-muted);">Players: ${t.players.join(', ')}</p>
+                        </div>
+                        ${t.status === 'Active' ? `<button onclick="advanceTournamentBracket('${t.id}')">NEXT MATCH</button>` : `<span class="badge approved">FINISHED</span>`}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function executeAdminAction(id, action) {
+            const tx = state.transactions.find(t => t.id === id);
+            if (!tx) return;
+
+            const targetUser = state.users.find(u => u.email === tx.user);
+            
+            if (action === 'Approve') {
+                tx.status = 'Approved';
+                if (tx.type === 'Deposit') {
+                    // Calculate and deduct deposit fee [cite: 180]
+                    const feeFactor = parseFloat(state.config.depFee) / 100;
+                    const creditedAmount = tx.amount * (1 - feeFactor);
+                    if (targetUser) targetUser.balance += creditedAmount;
+                }
+                // Withdrawals are already deducted on submission [cite: 191]
+            } else {
+                tx.status = 'Rejected';
+                // Refund withdrawals if rejected
+                if (tx.type === 'Withdrawal' && targetUser) {
+                    targetUser.balance += tx.amount;
+                }
+            }
+
+            saveState();
+            alert(`Transaction successfully marked as ${action}.`);
+            renderAdminTabsData();
+        }
+
+        function postAdminAnnouncement() {
+            const title = document.getElementById('ann-title').value.trim();
+            const message = document.getElementById('ann-msg').value.trim();
+            if(!title || !message) return;
+
+            const ann = { id: Date.now(), title, message };
+            state.announcements.push(ann);
+            
+            // Mirror announcement directly into chat channel lounge [cite: 42, 243]
+            state.chat.push({
+                sender: 'SYSTEM BROADCAST',
+                text: `**${title}**: ${message}`,
+                isAnnounce: true
+            });
+
+            saveState();
+            alert('Global announcement broadcast live.');
+            document.getElementById('ann-title').value = '';
+            document.getElementById('ann-msg').value = '';
+            renderAnnouncementBanners();
+        }
+
+        function createTournamentStructure() {
+            const name = document.getElementById('tourney-name').value.trim();
+            const pool = parseFloat(document.getElementById('tourney-pool').value);
+            const playerString = document.getElementById('tourney-players').value.trim();
+            
+            if(!name || !playerString) return;
+            const players = playerString.split(',').map(p => p.trim());
+
+            state.tournaments.push({
+                id: 'TOUR-' + Date.now(),
+                name, pool, players, status: 'Active', currentRound: 1
+            });
+            saveState();
+            alert('Tournament scheduled successfully.');
+            document.getElementById('tourney-name').value = '';
+            document.getElementById('tourney-players').value = '';
+            renderAdminTabsData();
+        }
+
+        function advanceTournamentBracket(id) {
+            const tourney = state.tournaments.find(t => t.id === id);
+            if(!tourney) return;
+
+            // Prize Distribution logic: 60%, 30%, 10% [cite: 24]
+            const p1Cut = tourney.pool * 0.60;
+            const p2Cut = tourney.pool * 0.30;
+            const p3Cut = tourney.pool * 0.10;
+
+            // Select arbitrary winners from user roster entries for simulation purposes
+            const champion = state.users.find(u => u.email === tourney.players[0]) || state.users[0];
+            const runnerUp = state.users.find(u => u.email === tourney.players[1]) || state.users[0];
+            const thirdPlace = state.users.find(u => u.email === tourney.players[2]) || state.users[0];
+
+            if(champion) champion.balance += p1Cut;
+            if(runnerUp) runnerUp.balance += p2Cut;
+            if(thirdPlace) thirdPlace.balance += p3Cut;
+
+            tourney.status = 'Completed';
+            saveState();
+            alert(`Tournament finalized. Winnings distributed:\n1st: ${p1Cut} MWK\n2nd: ${p2Cut} MWK\n3rd: ${p3Cut} MWK`);
+            renderAdminTabsData();
+        }
+
+        function saveSystemConfigurations() {
+            state.config.timer = parseInt(document.getElementById('cfg-timer').value);
+            state.config.houseFee = parseFloat(document.getElementById('cfg-house-fee').value);
+            state.config.depFee = parseFloat(document.getElementById('cfg-dep-fee').value);
+            state.config.witFee = parseFloat(document.getElementById('cfg-wit-fee').value);
+            state.config.nbmFee = parseFloat(document.getElementById('cfg-nbm-fee').value);
+            saveState();
+            alert('Global config variables updated.');
+        }
+
+        // --- STABLE MASTER BACKUP & SYSTEM RESTORATION ENGINE ---
+        function downloadMasterJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `DRAUGHT_MASTER_BACKUP_${Date.now()}.json`);
+            dlAnchorElem.click();
+        }
+
+        function restoreMasterJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.users && parsed.config) {
+                        state = parsed;
+                        saveState();
+                        alert('System database state restored from backup.');
+                        location.reload();
+                    } else {
+                        alert('Invalid master state schema design architecture.');
+                    }
+                } catch(err) {
+                    alert('Error parsing file array database strings.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadCSV(type) {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            if (type === 'users') {
+                csvContent += "Email,Role,Balance,Won,Lost\n";
+                state.users.forEach(u => {
+                    csvContent += `${u.email},${u.role},${u.balance},${u.won},${u.lost}\n`;
+                });
+            } else if (type === 'tx') {
+                csvContent += "ID,User,Type,Method,Amount,Ref,Status,Date\n";
+                state.transactions.forEach(t => {
+                    csvContent += `${t.id},${t.user},${t.type},${t.method},${t.amount},${t.ref},${t.status},${t.date}\n`;
+                });
+            } else {
+                csvContent += "ID,Name,Pool,Status\n";
+                state.tournaments.forEach(t => {
+                    csvContent += `${t.id},${t.name},${t.pool},${t.status}\n`;
+                });
+            }
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${type}_export_report.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize UI view defaults
+        renderNavigationHeader();
+    </script>
+</body>
+</html>
